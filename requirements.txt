@@ -1,0 +1,6 @@
+litestar[standard]==2.12.1
+litestar[jwt]==2.12.1
+peewee==3.17.7
+pydantic==2.9.2
+pydantic[email]==2.9.2
+argon2-cffi==23.1.0

@@ -30,8 +30,8 @@ def main():
     )
     user = create_active_user()
     people = create_people(f.random_int(10, 20))
-    groups = create_groups(user, people, f.random_int(2, 8))
-    create_transactions(groups)
+    # TODO: Add placeholder transactions
+    _ = create_groups(user, people, f.random_int(2, 8))
     db.close()
 
 
@@ -98,43 +98,6 @@ def create_groups(user: PersonModel, people: List[PersonModel], group_count: int
             ).save()
         created_groups.append(group)
     return created_groups
-
-
-def create_transactions(groups: List[GroupModel]):
-    for group in groups:
-        members = [
-            x.person.uuid
-            for x in list(
-                GroupMemberModel.select(GroupMemberModel.person)
-                .where(GroupMemberModel.group == group.uuid)
-                .iterator()
-            )
-        ]
-        n = len(members)
-        max_possible_permutation_pairs = int(n * (n - 1) / 2) + n
-
-        for i in range(0, f.random_int(2, 10)):
-            transaction = TransactionModel.create(
-                group=group.uuid, description=f.text(20)
-            )
-            details_pairs = {}
-            for d in range(1, f.random_int(max(max_possible_permutation_pairs, 5))):
-                creditor = f.random_element(members)
-
-                debtor = f.random_element(members)
-                pair = details_pairs.get(creditor, {})
-                pair[debtor] = f.random_int(1, 100000) / 100
-                details_pairs[creditor] = pair
-            transaction.save()
-            for creditor in details_pairs:
-                for debtor in details_pairs[creditor]:
-                    transaction_detail = TransactionDetailModel.create(
-                        transaction=transaction.uuid,
-                        creditor=creditor,
-                        debtor=debtor,
-                        amount=details_pairs[creditor][debtor],
-                    )
-                    transaction_detail.save()
 
 
 if __name__ == "__main__":

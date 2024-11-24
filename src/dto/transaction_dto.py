@@ -18,42 +18,26 @@ class TransactionDTO(pd.BaseModel):
     description: Optional[str]
     created_at: datetime
     updated_at: datetime
-    creditors: List[TransactionSplitDTO]
-    debtors: List[TransactionSplitDTO]
-    details: List[TransactionDetailDTO]
+    creditors: List[TransactionDetailDTO]
+    debtors: List[TransactionDetailDTO]
 
     @classmethod
     def from_model(cls, model: TransactionModel) -> TransactionDTO:
-        details = TransactionDetailModel.select().where(
-            TransactionDetailModel.transaction == model.uuid
-        )
-        detail_list = []
-        for detail in details:
-            detail_list.append(TransactionDetailDTO.from_model(detail))
-
-        splits = TransactionSplitModel.select().where(
-            TransactionSplitModel.transaction == model.uuid
-        )
-        split_dtos = []
-        for split in splits:
-            split_dtos.append(TransactionSplitDTO.from_model(split))
-        print(split_dtos)
-
-        creditors = []
-        debtors = []
-        for split in split_dtos:
-            if split.is_creditor:
-                creditors.append(split)
-            else:
-                debtors.append(split)
+        details = [
+            TransactionDetailDTO.from_model(x)
+            for x in TransactionDetailModel.select()
+            .where(TransactionDetailModel.transaction == model.uuid)
+            .iterator()
+        ]
+        creditors = [x for x in details if x.is_creditor]
+        debtors = [x for x in details if not x.is_creditor]
 
         return cls(
             description=model.description,
             created_at=model.created_at,
             updated_at=model.updated_at,
-            creditors=list(creditors),
-            debtors=list(debtors),
-            details=detail_list,
+            creditors=creditors,
+            debtors=debtors,
         )
 
     @classmethod

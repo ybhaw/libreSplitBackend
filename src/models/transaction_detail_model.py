@@ -15,12 +15,11 @@ class TransactionDetailModel(pw.Model):
         default=uuid4,
     )
     transaction = pw.ForeignKeyField(TransactionModel, backref="details", index=True)
-    creditor = pw.ForeignKeyField(PersonModel, backref="creditor", index=True)
-    debtor = pw.ForeignKeyField(PersonModel, backref="debtor", index=True)
+    person = pw.ForeignKeyField(PersonModel, backref="person", index=True)
     amount = pw.DecimalField(decimal_places=2, auto_round=True)
+    is_creditor = pw.BooleanField(default=False, index=True)
     created_at = pw.DateTimeField(default=utcnow)
     updated_at = pw.DateTimeField(default=utcnow)
-    settled_at = pw.DateTimeField(null=True, default=None, index=True)
 
     class Meta:
         database = db

@@ -23,7 +23,6 @@ class GroupController(ls.Controller):
         return GroupDTO.from_model(group)
 
     async def _create_group(self, group_data: GroupCreateDTO) -> GroupDTO:
-        print("Group data", group_data)
         group = GroupModel.create(
             name=group_data.name,
             description=group_data.description,

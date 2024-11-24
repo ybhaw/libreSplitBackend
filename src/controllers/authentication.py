@@ -1,5 +1,7 @@
+import os
 from typing import Optional
 from uuid import UUID
+from dotenv import load_dotenv
 
 import litestar as ls
 from argon2 import PasswordHasher
@@ -13,17 +15,15 @@ from models.person_model import PersonModel
 
 async def get_logged_in_user(token: Token, _) -> Optional[PersonModel]:
     return PersonCurrentDTO.from_model(
-        PersonModel.select().where(PersonModel.username == "ybhaw").first()
+        PersonModel.select().where(PersonModel.uuid == UUID(token.sub)).first()
     )
-    # return PersonCurrentDTO.from_model(
-    #     PersonModel.select().where(PersonModel.uuid == UUID(token.sub)).first()
-    # )
 
+
+load_dotenv()
 
 jwt_auth = JWTAuth[PersonCurrentDTO](
     retrieve_user_handler=get_logged_in_user,
-    # TODO: Update this
-    token_secret="secret",
+    token_secret=os.getenv("TOKEN_SECRET"),
     exclude=["/login", "/register", "/schema"],
 )
 
@@ -34,7 +34,6 @@ class AuthenticationController(ls.Controller):
 
     @ls.post("/login")
     async def login(self, data: PersonLoginDTO) -> ls.Response[PersonCurrentDTO]:
-        print("email is", data.email)
         person = PersonModel.select().where(PersonModel.email == data.email).first()
         if not person:
             # TODO: Make this generic
